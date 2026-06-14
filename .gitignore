@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+*.sqlite3
+staticfiles/
+venv/
+.venv/
+
+# .env навмисно НЕ ігнорується для цього навчального проєкту,
+# щоб `docker-compose up` працював одразу після клонування.
