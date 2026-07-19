@@ -1,0 +1,55 @@
+# ============================================================================
+# Параметри Django-застосунку
+# ============================================================================
+
+replicaCount: 2
+
+image:
+  # URL ECR-репозиторію. Взяти з виводу Terraform: `terraform output ecr_repository_url`.
+  # Формат: <account_id>.dkr.ecr.<region>.amazonaws.com/lesson-7-django
+  repository: 123456789012.dkr.ecr.us-west-2.amazonaws.com/lesson-7-django
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# ----------------------------------------------------------------------------
+# Service — LoadBalancer для зовнішнього доступу.
+# ----------------------------------------------------------------------------
+service:
+  type: LoadBalancer
+  port: 80          # зовнішній порт балансувальника
+  targetPort: 8000  # порт контейнера Django (runserver 0.0.0.0:8000)
+
+# ----------------------------------------------------------------------------
+# Ресурси контейнера — requests обов'язкові, щоб HPA рахував % завантаження CPU.
+# ----------------------------------------------------------------------------
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+# ----------------------------------------------------------------------------
+# Horizontal Pod Autoscaler — від 2 до 6 подів при завантаженні CPU > 70%.
+# ----------------------------------------------------------------------------
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+
+# ----------------------------------------------------------------------------
+# ConfigMap — змінні середовища, перенесені з теми 4 (.env).
+# Django читає їх через envFrom у Deployment.
+# ----------------------------------------------------------------------------
+config:
+  POSTGRES_DB: "myproject_db"
+  POSTGRES_USER: "myproject_user"
+  POSTGRES_PASSWORD: "myproject_pass"
+  POSTGRES_HOST: "db"
+  POSTGRES_PORT: "5432"
+  DJANGO_SECRET_KEY: "dev-insecure-secret-key-change-me-in-production"
+  DJANGO_DEBUG: "1"
+  # У кластері DNS-ім'я LoadBalancer динамічне — дозволяємо всі хости.
+  DJANGO_ALLOWED_HOSTS: "*"

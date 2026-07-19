@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  # Якщо увімкнено HPA — кількістю реплік керує саме він.
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: django
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          # Змінні середовища підключаються з ConfigMap (перенесені з теми 4).
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-config
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: 20
+            periodSeconds: 15
