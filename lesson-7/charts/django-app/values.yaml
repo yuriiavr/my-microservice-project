@@ -6,9 +6,10 @@ replicaCount: 2
 
 image:
   # URL ECR-репозиторію = <AWS_ACCOUNT_ID>.dkr.ecr.<region>.amazonaws.com/lesson-7-django
-  # ВАЖЛИВО: цей рядок правити вручну НЕ треба — GitHub Actions підставляє реальне
-  # значення через `--set image.repository=...` (бере його з `terraform output`).
-  # Для ручного `helm install` заміни на свій URL: `terraform output -raw ecr_repository_url`.
+  # 123456789012 — це заглушка (умовний 12-значний AWS Account ID).
+  # Перед деплоєм заміни рядок на свій URL з виводу Terraform:
+  #   terraform output -raw ecr_repository_url
+  # або передай його прямо в helm: --set image.repository=<URL>
   repository: 123456789012.dkr.ecr.us-west-2.amazonaws.com/lesson-7-django
   tag: latest
   pullPolicy: IfNotPresent

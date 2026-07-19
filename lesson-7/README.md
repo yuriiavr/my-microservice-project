@@ -20,31 +20,6 @@ lesson-7/
     └── django-app/      # Helm-чарт (deployment, service, hpa, configmap)
 ```
 
-## Автоматичне розгортання (GitHub Actions) — рекомендовано
-
-Workflow [.github/workflows/deploy.yml](../.github/workflows/deploy.yml) робить усе сам
-при кожному push у гілку `lesson-7` (або вручну через кнопку **Run workflow**):
-
-1. bootstrap бекенду (S3 + DynamoDB) та `terraform apply` — VPC + ECR + EKS;
-2. build і push Docker-образу Django в ECR;
-3. `helm upgrade --install` — Deployment + Service (LoadBalancer) + HPA + ConfigMap;
-4. встановлення metrics-server (потрібен для HPA).
-
-Одноразове налаштування (більше нічого руками не робиться):
-
-```bash
-# додати AWS-ключі як секрети репозиторію
-gh secret set AWS_ACCESS_KEY_ID --body "AKIA..."
-gh secret set AWS_SECRET_ACCESS_KEY --body "..."
-```
-
-`image.repository` у `values.yaml` правити НЕ треба — workflow підставляє реальний
-ECR URL через `--set`.
-
-Розділи нижче — це ті самі кроки вручну (якщо потрібно розгорнути без CI).
-
----
-
 ## 1. Розгортання інфраструктури (Terraform)
 
 Bootstrap бекенду (перший запуск): у `backend.tf` тимчасово закоментуйте блок `backend "s3"`,
