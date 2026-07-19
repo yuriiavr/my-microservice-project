@@ -1,0 +1,9 @@
+name: hello
+on:
+  push:
+    branches: [lesson-7]
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo hello
