@@ -1,0 +1,48 @@
+# Конфігурація kube-prometheus-stack.
+
+grafana:
+  enabled: true
+  # Ім'я сервісу = grafana (щоб працювала команда `kubectl port-forward svc/grafana`).
+  fullnameOverride: grafana
+  adminUser: admin
+  adminPassword: "${grafana_admin_password}"
+  service:
+    type: ${grafana_service_type}
+    port: 80
+  # Готові дашборди Kubernetes (ноди, поди, деплойменти).
+  defaultDashboardsEnabled: true
+
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+    # Персистентний том для метрик (через EBS CSI / StorageClass gp3).
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+
+# node-exporter та kube-state-metrics лишаємо увімкненими —
+# вони дають метрики нод і об'єктів кластера.
+nodeExporter:
+  enabled: true
+kubeStateMetrics:
+  enabled: true
