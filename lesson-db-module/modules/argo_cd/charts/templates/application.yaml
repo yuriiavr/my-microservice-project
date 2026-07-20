@@ -15,7 +15,6 @@ spec:
     server: {{ .Values.application.destinationServer }}
     namespace: {{ .Values.application.destinationNamespace }}
   syncPolicy:
-    # Автоматична синхронізація змін із Git.
     automated:
       prune: true
       selfHeal: true
