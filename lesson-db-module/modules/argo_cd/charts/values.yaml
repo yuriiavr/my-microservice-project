@@ -1,0 +1,14 @@
+# Application, за яким стежить Argo CD.
+application:
+  name: django-app
+  project: default
+  repoURL: https://github.com/yuriiavr/my-microservice-project.git
+  targetRevision: main
+  path: lesson-8-9/charts/django-app
+  destinationServer: https://kubernetes.default.svc
+  destinationNamespace: django
+
+# Реєстрація Git-репозиторію в Argo CD (для публічного repo креденшели не потрібні).
+repository:
+  enabled: true
+  name: my-microservice-project
