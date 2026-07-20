@@ -54,6 +54,25 @@ terraform apply
 > `terraform init` та `terraform apply -target=module.s3_backend`, потім розкоментуйте блок і
 > `terraform init -migrate-state`.
 
+> **Порядок першого apply:** helm/kubernetes-провайдери автентифікуються в EKS, тому кластер
+> має існувати ДО встановлення Helm-релізів. Якщо перший `terraform apply` впаде на автентифікації
+> провайдера — спершу підніміть кластер, потім усе решта:
+> ```bash
+> terraform apply -target=module.vpc -target=module.eks
+> terraform apply
+> ```
+
+> **Версія БД:** мінорні версії RDS з часом застарівають. Перед apply перевірте доступні в регіоні:
+> ```bash
+> aws rds describe-db-engine-versions --engine postgres \
+>   --query 'DBEngineVersions[].EngineVersion' --output text
+> ```
+> і за потреби задайте `-var db_engine_version=<версія>` (та відповідний `db_parameter_group_family`).
+
+> **ECR у values.yaml:** `image.repository` містить заглушку account id `123456789012` —
+> підставте свій (`terraform output -raw ecr_repository_url`), він має збігатися з `ECR_REGISTRY`
+> у Jenkinsfile.
+
 Доступ до кластера:
 
 ```bash
