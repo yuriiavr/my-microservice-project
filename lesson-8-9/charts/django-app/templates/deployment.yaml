@@ -5,7 +5,6 @@ metadata:
   labels:
     app: {{ .Release.Name }}
 spec:
-  # Якщо увімкнено HPA — кількістю реплік керує саме він.
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
@@ -23,7 +22,6 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.targetPort }}
-          # Змінні середовища підключаються з ConfigMap (перенесені з теми 4).
           envFrom:
             - configMapRef:
                 name: {{ .Release.Name }}-config

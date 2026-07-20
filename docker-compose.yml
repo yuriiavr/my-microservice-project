@@ -1,5 +1,4 @@
 services:
-  # PostgreSQL — база даних.
   db:
     image: postgres:15
     container_name: myproject_db
@@ -15,11 +14,9 @@ services:
       timeout: 5s
       retries: 10
 
-  # Django — вебзастосунок.
   web:
     build: .
     container_name: myproject_web
-    # Перед стартом застосовуємо міграції, потім піднімаємо сервер.
     command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
     env_file:
       - .env
@@ -30,11 +27,9 @@ services:
         condition: service_healthy
     networks:
       default:
-        # Аліас 'django' потрібен, щоб Nginx міг проксувати на http://django:8000.
         aliases:
           - django
 
-  # Nginx — вебсервер для проксирування запитів.
   nginx:
     image: nginx:1.25-alpine
     container_name: myproject_nginx

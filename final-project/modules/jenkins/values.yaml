@@ -1,7 +1,4 @@
-# Конфігурація Helm-чарта jenkins/jenkins.
-# adminUser / adminPassword додаються з Terraform (set / set_sensitive).
 controller:
-  # Зовнішній доступ до UI через AWS LoadBalancer.
   serviceType: LoadBalancer
 
   resources:
@@ -12,12 +9,9 @@ controller:
       cpu: "2"
       memory: "4Gi"
 
-  # Плагіни поверх дефолтних (kubernetes, git, workflow-aggregator, configuration-as-code
-  # чарт ставить сам). github — для роботи з GitHub-репозиторієм.
   additionalPlugins:
     - github
 
-# Динамічні агенти в Kubernetes (kaniko-под описується в Jenkinsfile).
 agent:
   enabled: true
 
@@ -28,7 +22,6 @@ serviceAccount:
   create: true
   name: jenkins
 
-# Персистентний том для $JENKINS_HOME (через EBS CSI / StorageClass gp3).
 persistence:
   enabled: true
   storageClass: "gp3"
