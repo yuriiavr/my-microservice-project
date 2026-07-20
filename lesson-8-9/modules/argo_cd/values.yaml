@@ -1,18 +1,14 @@
-# Конфігурація Helm-чарта argo/argo-cd.
 global:
   domain: argocd.local
 
 configs:
   params:
-    # UI/API працює по HTTP (за LoadBalancer немає TLS-термінатора).
     server.insecure: true
 
 server:
-  # Зовнішній доступ до Argo CD UI через AWS LoadBalancer.
   service:
     type: LoadBalancer
 
-# Для навчального стенду вимикаємо HA-репліки (менше ресурсів).
 redis-ha:
   enabled: false
 controller:
