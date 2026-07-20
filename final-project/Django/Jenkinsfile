@@ -1,0 +1,89 @@
+// CI/CD pipeline: Kaniko збирає образ Django, пушить у ECR,
+// оновлює тег у values.yaml і пушить у Git. Далі Argo CD синхронізує кластер.
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer 'kaniko'
+      yaml '''
+apiVersion: v1
+kind: Pod
+spec:
+  serviceAccountName: jenkins-agent
+  containers:
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:v1.23.2-debug
+      command: ["sleep"]
+      args: ["infinity"]
+      tty: true
+    - name: git
+      image: alpine/git:2.45.2
+      command: ["sleep"]
+      args: ["infinity"]
+      tty: true
+'''
+    }
+  }
+
+  environment {
+    AWS_REGION = 'us-west-2'
+    // ECR_REGISTRY/ECR_REPO мають збігатися з image.repository у values.yaml.
+    // 123456789012 — заглушка; підстав свій account id (terraform output -raw ecr_repository_url).
+    ECR_REGISTRY = '123456789012.dkr.ecr.us-west-2.amazonaws.com'
+    ECR_REPO     = 'final-project-django'
+    IMAGE_TAG    = "build-${env.BUILD_NUMBER}"
+
+    GIT_REPO    = 'github.com/yuriiavr/my-microservice-project.git'
+    GIT_BRANCH  = 'main'
+    BUILD_DIR   = 'final-project/Django'
+    VALUES_FILE = 'final-project/charts/django-app/values.yaml'
+  }
+
+  stages {
+    // Джерело перевіряється автоматично (declarative checkout) у спільний workspace.
+    stage('Build & Push (Kaniko)') {
+      steps {
+        container('kaniko') {
+          sh '''
+            /kaniko/executor \
+              --context "${WORKSPACE}/${BUILD_DIR}" \
+              --dockerfile "${WORKSPACE}/${BUILD_DIR}/Dockerfile" \
+              --destination "${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}" \
+              --destination "${ECR_REGISTRY}/${ECR_REPO}:latest"
+          '''
+        }
+      }
+    }
+
+    // Оновлюємо тег образу в GitOps-репозиторії та пушимо в main.
+    stage('Bump image tag & push') {
+      steps {
+        container('git') {
+          withCredentials([usernamePassword(credentialsId: 'github-token',
+                                             usernameVariable: 'GIT_USER',
+                                             passwordVariable: 'GIT_TOKEN')]) {
+            sh '''
+              set -e
+              git clone --depth 1 --branch "${GIT_BRANCH}" \
+                "https://${GIT_USER}:${GIT_TOKEN}@${GIT_REPO}" gitops
+              cd gitops
+
+              sed -i "s|^\\( *tag:\\).*|\\1 \\"${IMAGE_TAG}\\"|" "${VALUES_FILE}"
+
+              git config user.email "jenkins@ci.local"
+              git config user.name  "jenkins-ci"
+              git add "${VALUES_FILE}"
+              git commit -m "ci: bump django-app image tag to ${IMAGE_TAG}"
+              git push origin "${GIT_BRANCH}"
+            '''
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "Pushed ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG} and bumped ${VALUES_FILE} on ${GIT_BRANCH}. Argo CD will sync."
+    }
+  }
+}

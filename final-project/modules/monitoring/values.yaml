@@ -1,0 +1,41 @@
+grafana:
+  enabled: true
+  fullnameOverride: grafana
+  adminUser: admin
+  adminPassword: "${grafana_admin_password}"
+  service:
+    type: ${grafana_service_type}
+    port: 80
+  defaultDashboardsEnabled: true
+
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+
+nodeExporter:
+  enabled: true
+kubeStateMetrics:
+  enabled: true

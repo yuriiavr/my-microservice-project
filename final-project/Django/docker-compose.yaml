@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:15
-    container_name: myproject_db
+    container_name: final_db
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -16,10 +16,10 @@ services:
 
   web:
     build: .
-    container_name: myproject_web
+    container_name: final_web
     command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
     env_file:
-      - .env
+      - ./app/.env
     expose:
       - "8000"
     depends_on:
@@ -32,11 +32,11 @@ services:
 
   nginx:
     image: nginx:1.25-alpine
-    container_name: myproject_nginx
+    container_name: final_nginx
     ports:
       - "80:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./app/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - web
 
