@@ -144,7 +144,7 @@ variable "db_engine" {
 variable "db_engine_version" {
   description = "Версія рушія БД."
   type        = string
-  default     = "15.4"
+  default     = "15.8"
 }
 
 variable "db_instance_class" {

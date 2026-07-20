@@ -1,7 +1,7 @@
 replicaCount: 2
 
 image:
-  repository: 123456789012.dkr.ecr.us-west-2.amazonaws.com/lesson-8-9-django
+  repository: 123456789012.dkr.ecr.us-west-2.amazonaws.com/lesson-db-module-django
   tag: latest
   pullPolicy: IfNotPresent
 

@@ -24,7 +24,7 @@ variable "engine" {
 variable "engine_version" {
   description = "Версія рушія (напр. 15.4 для postgres, 8.0 для mysql)."
   type        = string
-  default     = "15.4"
+  default     = "15.8"
 }
 
 variable "instance_class" {
